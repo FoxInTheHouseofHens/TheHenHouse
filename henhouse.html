@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examination Monitoring Portal</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f3f7;
+    color: #252a35;
+}
+
+header {
+    background: #202c45;
+    color: white;
+    padding: 22px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 35px auto;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: bold;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #16a34a;
+}
+
+.indicator.warning {
+    background: #dc2626;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.stat {
+    background: #f5f6fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.stat h1 {
+    margin: 5px 0;
+    font-size: 32px;
+}
+
+.log {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.event {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.event.warning {
+    color: #dc2626;
+}
+
+.event.normal {
+    color: #16803d;
+}
+
+.event.info {
+    color: #2563eb;
+}
+
+button {
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #263c61;
+    color: white;
+}
+
+button:hover {
+    background: #36527f;
+}
+
+.muted {
+    color: #777;
+    font-size: 13px;
+}
+
+textarea {
+    width: 100%;
+    height: 130px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: Arial;
+    resize: vertical;
+}
+
+.monitor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.monitor-item {
+    background: #f5f6fa;
+    border-radius: 7px;
+    padding: 14px;
+    font-size: 14px;
+}
+
+.monitor-item span {
+    float: right;
+    font-weight: bold;
+}
+
+@media(max-width:650px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .monitor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        padding: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>Examination Portal</h2>
+    <span>Online Assessment</span>
+</header>
+
+<div class="container">
+
+    <!-- SESSION STATUS -->
+
+    <div class="card">
+        <h2>Examination Session</h2>
+        <p>Welcome to your online examination.</p>
+
+        <p class="muted">
+            Browser focus and website integrity monitoring are active.
+        </p>
+
+        <div class="status">
+            <div class="indicator" id="indicator"></div>
+            <span id="statusText">Window Active</span>
+        </div>
+    </div>
+
+    <!-- STATISTICS -->
+
+    <div class="stats">
+
+        <div class="card stat">
+            <p>Focus Violations</p>
+            <h1 id="violations">0</h1>
+            <span class="muted">Focus losses detected</span>
+        </div>
+
+        <div class="card stat">
+            <p>Tampering Events</p>
+            <h1 id="tampering">0</h1>
+            <span class="muted">Integrity alerts</span>
+        </div>
+
+        <div class="card stat">
+            <p>Session Duration</p>
+            <h1 id="duration">00:00</h1>
+            <span class="muted">Time since session started</span>
+        </div>
+
+    </div>
+
+    <!-- MONITOR STATUS -->
+
+    <div class="card">
+        <h3>Monitoring Systems</h3>
+
+        <div class="monitor-grid">
+            <div class="monitor-item">
+                Tab visibility
+                <span id="tabMonitor">Active</span>
+            </div>
+
+            <div class="monitor-item">
+                Window focus
+                <span id="focusMonitor">Active</span>
+            </div>
+
+            <div class="monitor-item">
+                DOM observer
+                <span id="domMonitor">Active</span>
+            </div>
+
+            <div class="monitor-item">
+                Integrity checker
+                <span id="integrityMonitor">Active</span>
+            </div>
+
+            <div class="monitor-item">
+                Page lifecycle
+                <span id="lifecycleMonitor">Active</span>
+            </div>
+
+            <div class="monitor-item">
+                Script monitoring
+                <span id="scriptMonitor">Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVITY LOG -->
+
+    <div class="card">
+        <h3>Activity Log</h3>
+
+        <div class="log" id="log">
+            <div class="event normal">
+                Session started successfully.
+            </div>
+        </div>
+
+        <br>
+
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="exportLog()">Export Log</button>
+    </div>
+
+    <!-- EXAMINATION -->
+
+    <div class="card" id="examContent">
+        <h3>Examination Content</h3>
+
+        <p id="question1">
+            Question 1: Explain the relationship between velocity and acceleration.
+        </p>
+
+        <textarea
+            id="answer1"
+            placeholder="Enter your answer here..."
+        ></textarea>
+    </div>
+
+</div>
+
+<script>
+
+// ============================================
+// SESSION VARIABLES
+// ============================================
+
+let violations = 0;
+let tamperingEvents = 0;
+
+let startTime = Date.now();
+let isAway = false;
+
+let eventHistory = [];
+
+const indicator = document.getElementById("indicator");
+const statusText = document.getElementById("statusText");
+const log = document.getElementById("log");
+
+const violationDisplay = document.getElementById("violations");
+const tamperingDisplay = document.getElementById("tampering");
+
+
+// ============================================
+// ACTIVITY LOGGING
+// ============================================
+
+function addLog(message, type = "normal") {
+
+    const entry = document.createElement("div");
+
+    entry.className = "event " + type;
+
+    const timestamp = new Date().toLocaleTimeString();
+
+    entry.textContent = `[${timestamp}] ${message}`;
+
+    log.prepend(entry);
+
+    eventHistory.push({
+        time: new Date().toISOString(),
+        event: message,
+        type: type
+    });
+}
+
+function clearLog() {
+    log.replaceChildren();
+    addLog("Activity log cleared.", "info");
+}
+
+function exportLog() {
+
+    const data = JSON.stringify(eventHistory, null, 2);
+
+    const blob = new Blob([data], {
+        type: "application/json"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "examination-activity-log.json";
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+
+// ============================================
+// FOCUS MONITORING
+// ============================================
+
+function loseFocus(reason) {
+
+    if (isAway) return;
+
+    isAway = true;
+
+    violations++;
+
+    violationDisplay.textContent = violations;
+
+    indicator.classList.add("warning");
+
+    statusText.textContent = "Window Inactive";
+
+    document.getElementById("focusMonitor").textContent = "Inactive";
+
+    addLog(reason, "warning");
+}
+
+function regainFocus() {
+
+    if (!isAway) return;
+
+    isAway = false;
+
+    indicator.classList.remove("warning");
+
+    statusText.textContent = "Window Active";
+
+    document.getElementById("focusMonitor").textContent = "Active";
+
+    addLog("Browser window regained focus.", "normal");
+}
+
+
+// Detect tab switching and hidden pages
+
+document.addEventListener("visibilitychange", () => {
+
+    if (document.hidden) {
+
+        document.getElementById("tabMonitor").textContent = "Hidden";
+
+        loseFocus("Examination tab became hidden.");
+
+    } else {
+
+        document.getElementById("tabMonitor").textContent = "Visible";
+
+        regainFocus();
+    }
+});
+
+
+// Detect browser window losing focus
+
+window.addEventListener("blur", () => {
+
+    loseFocus("Browser window lost focus.");
+
+});
+
+
+// Detect browser window regaining focus
+
+window.addEventListener("focus", () => {
+
+    if (!document.hidden) {
+        regainFocus();
+    }
+
+});
+
+
+// ============================================
+// WINDOW RESIZE MONITORING
+// ============================================
+
+let previousWidth = window.innerWidth;
+let previousHeight = window.innerHeight;
+
+window.addEventListener("resize", () => {
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    if (
+        width !== previousWidth ||
+        height !== previousHeight
+    ) {
+
+        addLog(
+            `Browser viewport resized: ${width}x${height}.`,
+            "info"
+        );
+
+    }
+
+    previousWidth = width;
+    previousHeight = height;
+
+});
+
+
+// ============================================
+// PAGE LIFECYCLE MONITORING
+// ============================================
+
+document.addEventListener("freeze", () => {
+
+    document.getElementById("lifecycleMonitor").textContent = "Frozen";
+
+    addLog("Page entered frozen state.", "warning");
+
+});
+
+document.addEventListener("resume", () => {
+
+    document.getElementById("lifecycleMonitor").textContent = "Active";
+
+    addLog("Page resumed execution.", "info");
+
+});
+
+window.addEventListener("pagehide", () => {
+
+    addLog("Page hide event detected.", "warning");
+
+});
+
+window.addEventListener("pageshow", () => {
+
+    addLog("Page show event detected.", "info");
+
+});
+
+
+// ============================================
+// WEBSITE INTEGRITY MONITORING
+// ============================================
+
+// The examination content is the protected region.
+// Dynamic monitoring UI and answer fields are excluded.
+
+const protectedRoot = document.getElementById("examContent");
+
+function tamperingAlert(message) {
+
+    tamperingEvents++;
+
+    tamperingDisplay.textContent = tamperingEvents;
+
+    addLog("POTENTIAL TAMPERING: " + message, "warning");
+
+}
+
+
+// Capture an initial representation of protected content.
+
+function createSnapshot(element) {
+
+    return {
+        tag: element.tagName,
+        text: element.tagName === "TEXTAREA" ||
+              element.tagName === "INPUT"
+                ? null
+                : element.textContent,
+        attributes: Array.from(element.attributes)
+            .map(a => [a.name, a.value])
+            .sort((a, b) => a[0].localeCompare(b[0])),
+        children: Array.from(element.children)
+            .map(createSnapshot)
+    };
+}
+
+let originalSnapshot = JSON.stringify(
+    createSnapshot(protectedRoot)
+);
+
+
+// ============================================
+// DOM MUTATION OBSERVER
+// ============================================
+
+const observer = new MutationObserver((mutations) => {
+
+    for (const mutation of mutations) {
+
+        // Text modifications
+
+        if (mutation.type === "characterData") {
+
+            tamperingAlert("Protected text content modified.");
+
+        }
+
+        // Added or removed elements
+
+        if (mutation.type === "childList") {
+
+            if (mutation.addedNodes.length > 0) {
+
+                tamperingAlert(
+                    "HTML elements or text nodes inserted."
+                );
+
+                // Report injected scripts specifically.
+
+                mutation.addedNodes.forEach(node => {
+
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+
+                        if (node.tagName === "SCRIPT") {
+
+                            tamperingAlert(
+                                "Unexpected script element inserted."
+                            );
+
+                        }
+
+                        if (node.querySelector &&
+                            node.querySelector("script")) {
+
+                            tamperingAlert(
+                                "Element containing a script inserted."
+                            );
+
+                        }
+                    }
+
+                });
+
+            }
+
+            if (mutation.removedNodes.length > 0) {
+
+                tamperingAlert("HTML elements or text nodes removed.");
+
+            }
+
+        }
+
+        // Attribute modifications
+
+        if (mutation.type === "attributes") {
+
+            tamperingAlert(
+                "Attribute changed: " + mutation.attributeName
+            );
+
+        }
+
+    }
+
+});
+
+observer.observe(protectedRoot, {
+
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true
+
+});
+
+document.getElementById("domMonitor").textContent = "Active";
+
+
+// ============================================
+// PERIODIC INTEGRITY CHECK
+// ============================================
+
+setInterval(() => {
+
+    const currentSnapshot = JSON.stringify(
+        createSnapshot(protectedRoot)
+    );
+
+    if (currentSnapshot !== originalSnapshot) {
+
+        tamperingAlert(
+            "Protected examination content differs from its original snapshot."
+        );
+
+        // Update baseline to avoid repeated alerts for the same change.
+        originalSnapshot = currentSnapshot;
+
+    }
+
+}, 3000);
+
+document.getElementById("integrityMonitor").textContent = "Active";
+
+
+// ============================================
+// SCRIPT MONITORING
+// ============================================
+
+// Monitor script elements added to the document.
+
+const scriptObserver = new MutationObserver((mutations) => {
+
+    mutations.forEach(mutation => {
+
+        mutation.addedNodes.forEach(node => {
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+
+                if (node.tagName === "SCRIPT") {
+
+                    addLog(
+                        "A script element was added to the document.",
+                        "warning"
+                    );
+
+                }
+
+            }
+
+        });
+
+    });
+
+});
+
+scriptObserver.observe(document.documentElement, {
+
+    childList: true,
+    subtree: true
+
+});
+
+document.getElementById("scriptMonitor").textContent = "Active";
+
+
+// ============================================
+// SESSION TIMER
+// ============================================
+
+setInterval(() => {
+
+    const elapsed = Math.floor(
+        (Date.now() - startTime) / 1000
+    );
+
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+
+    document.getElementById("duration").textContent =
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+
+}, 1000);
+
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+addLog("Focus monitoring initialized.", "normal");
+addLog("DOM monitoring initialized.", "normal");
+addLog("Integrity checking initialized.", "normal");
+addLog("Page lifecycle monitoring initialized.", "normal");
+
+</script>
+
+</body>
+</html>
